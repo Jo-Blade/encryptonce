@@ -125,6 +125,7 @@ entermachine () {
 export -f entermachine
 
 # create a tmux with a different namespace in each pane
-tmux new-session \; split-window -h \; split-window -v \; select-pane -U \; split-window -v \; select-pane -R \; split-window -v \; select-pane -U \; split-window -v \; select-layout tiled \; send-keys -t 0 'echo "bonjour"' C-m \; send-keys -t 1 'entermachine box' C-m \; send-keys -t 2 'entermachine dest' C-m \; send-keys -t 3 'entermachine router' C-m \; send-keys -t 4 'entermachine vpn' C-m \; send-keys -t 5 'entermachine client' C-m
+# do not forget to use another path for the socket as /tmp/tmux-0 is not isolated
+tmux -S /tmp/.tmp/tmuxsock new-session \; split-window -h \; split-window -v \; select-pane -U \; split-window -v \; select-pane -R \; split-window -v \; select-pane -U \; split-window -v \; select-layout tiled \; send-keys -t 0 'echo "bonjour"' C-m \; send-keys -t 1 'entermachine box' C-m \; send-keys -t 2 'entermachine dest' C-m \; send-keys -t 3 'entermachine router' C-m \; send-keys -t 4 'entermachine vpn' C-m \; send-keys -t 5 'entermachine client' C-m
 
 bash
