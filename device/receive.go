@@ -253,12 +253,15 @@ func (device *Device) RoutineDecryption(id int) {
 			elem.counter = binary.LittleEndian.Uint64(counter)
 			// copy counter to nonce
 			binary.LittleEndian.PutUint64(nonce[0x4:0xc], elem.counter)
-			elem.packet, err = elem.keypair.receive.Open(
-				content[:0],
-				nonce[:],
-				content,
-				nil,
-			)
+
+      err = nil
+      elem.packet = content
+			// elem.packet, err = elem.keypair.receive.Open(
+			// 	content[:0],
+			// 	nonce[:],
+			// 	content,
+			// 	nil,
+			// )
 			if err != nil {
 				elem.packet = nil
 			}

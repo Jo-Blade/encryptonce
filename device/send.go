@@ -468,12 +468,16 @@ func (device *Device) RoutineEncryption(id int) {
 			// encrypt content and release to consumer
 
 			binary.LittleEndian.PutUint64(nonce[4:], elem.nonce)
-			elem.packet = elem.keypair.send.Seal(
-				header,
-				nonce[:],
-				elem.packet,
-				nil,
-			)
+			// elem.packet = elem.keypair.send.Seal(
+			// 	header,
+			// 	nonce[:],
+			// 	elem.packet,
+			// 	nil,
+			// )
+      for _, b := range elem.packet {
+        header = append(header, b)
+      }
+      elem.packet = header
 		}
 		elemsContainer.Unlock()
 	}
