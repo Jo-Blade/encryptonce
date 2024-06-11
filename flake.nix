@@ -73,8 +73,10 @@
               wireguard-go # compile from source from this repository
               pkgs.wireguard-tools
               pkgs.wireshark
+              pkgs.python3 # for http.server, useful for testing
               pkgs.util-linux
               pkgs.makeWrapper
+              pkgs.iperf
             ];
 
             buildPhase = ''
@@ -97,6 +99,17 @@
           };
 
           wireguard-go = wireguard-go;
+        });
+
+      # Add dependencies that are only needed for development
+      devShells = forAllSystems (system:
+        let
+          pkgs = nixpkgsFor.${system};
+        in
+        {
+          default = pkgs.mkShell {
+            buildInputs = with pkgs; [ go gopls gotools go-tools ];
+          };
         });
 
       # The default package for 'nix build'. This makes sense if the
