@@ -256,9 +256,12 @@ func (device *Device) RoutineDecryption(id int) {
 			elem.packet, err = elem.keypair.receive.Open(
 				content[:0],
 				nonce[:],
-				content,
+        content[:20 + elem.keypair.receive.Overhead()], // size of the ipv4 header
 				nil,
 			)
+
+			elem.packet = append(elem.packet, content[20 + elem.keypair.receive.Overhead():]...) // append unencrypted data
+
 			if err != nil {
 				elem.packet = nil
 			}

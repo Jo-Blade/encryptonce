@@ -466,14 +466,16 @@ func (device *Device) RoutineEncryption(id int) {
 			elem.packet = append(elem.packet, paddingZeros[:paddingSize]...)
 
 			// encrypt content and release to consumer
-
+      // encrypt only the ipv4 header and leave the payload unchanged
+      copy(elem.packet[elem.keypair.send.Overhead()+20:cap(elem.packet)], elem.packet[20:]) // move data to the right to have space for the cipher overhead
 			binary.LittleEndian.PutUint64(nonce[4:], elem.nonce)
-			elem.packet = elem.keypair.send.Seal(
+			elem.keypair.send.Seal(
 				header,
 				nonce[:],
-				elem.packet,
+        elem.packet[:20], // 20 is the size of the ipv4 header
 				nil,
 			)
+      elem.packet = elem.buffer[:MessageTransportHeaderSize + len(elem.packet) + elem.keypair.send.Overhead()]
 		}
 		elemsContainer.Unlock()
 	}
