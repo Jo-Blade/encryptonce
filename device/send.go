@@ -14,7 +14,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 	"golang.zx2c4.com/wireguard/conn"
@@ -443,7 +442,6 @@ func calculatePaddingSize(packetSize, mtu int) int {
  */
 func (device *Device) RoutineEncryption(id int) {
 	var paddingZeros [PaddingMultiple]byte
-	var nonce [chacha20poly1305.NonceSize]byte
 
 	defer device.log.Verbosef("Routine: encryption worker %d - stopped", id)
 	device.log.Verbosef("Routine: encryption worker %d - started", id)
@@ -463,21 +461,16 @@ func (device *Device) RoutineEncryption(id int) {
 
 			// pad content to multiple of 16
 			paddingSize := calculatePaddingSize(len(elem.packet), int(device.tun.mtu.Load()))
+
+			// release to consumer
+
+      // we just reslice the buffer rather than doing an append because
+      // the packet is already at the good position so we don't need to copy it
+      // elem.packet = append(header, elem.packet...)
+      elem.packet = elem.buffer[:MessageTransportHeaderSize + len(elem.packet)]
+
+      // add the zero padding
 			elem.packet = append(elem.packet, paddingZeros[:paddingSize]...)
-
-			// encrypt content and release to consumer
-
-			binary.LittleEndian.PutUint64(nonce[4:], elem.nonce)
-			// elem.packet = elem.keypair.send.Seal(
-			// 	header,
-			// 	nonce[:],
-			// 	elem.packet,
-			// 	nil,
-			// )
-      for _, b := range elem.packet {
-        header = append(header, b)
-      }
-      elem.packet = header
 		}
 		elemsContainer.Unlock()
 	}

@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/chacha20poly1305"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
 	"golang.zx2c4.com/wireguard/conn"
@@ -237,8 +236,6 @@ func (device *Device) RoutineReceiveIncoming(maxBatchSize int, recv conn.Receive
 }
 
 func (device *Device) RoutineDecryption(id int) {
-	var nonce [chacha20poly1305.NonceSize]byte
-
 	defer device.log.Verbosef("Routine: decryption worker %d - stopped", id)
 	device.log.Verbosef("Routine: decryption worker %d - started", id)
 
@@ -246,25 +243,10 @@ func (device *Device) RoutineDecryption(id int) {
 		for _, elem := range elemsContainer.elems {
 			// split message into fields
 			counter := elem.packet[MessageTransportOffsetCounter:MessageTransportOffsetContent]
-			content := elem.packet[MessageTransportOffsetContent:]
 
-			// decrypt and release to consumer
-			var err error
+			// release to consumer
 			elem.counter = binary.LittleEndian.Uint64(counter)
-			// copy counter to nonce
-			binary.LittleEndian.PutUint64(nonce[0x4:0xc], elem.counter)
-
-      err = nil
-      elem.packet = content
-			// elem.packet, err = elem.keypair.receive.Open(
-			// 	content[:0],
-			// 	nonce[:],
-			// 	content,
-			// 	nil,
-			// )
-			if err != nil {
-				elem.packet = nil
-			}
+			elem.packet = elem.packet[MessageTransportOffsetContent:]
 		}
 		elemsContainer.Unlock()
 	}
