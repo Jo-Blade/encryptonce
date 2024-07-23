@@ -65,7 +65,7 @@ static struct wg_device *lookup_interface(struct nlattr **attrs,
 	if (!dev)
 		return ERR_PTR(-ENODEV);
 	if (!dev->rtnl_link_ops || !dev->rtnl_link_ops->kind ||
-	    strcmp(dev->rtnl_link_ops->kind, KBUILD_MODNAME)) {
+	    strcmp(dev->rtnl_link_ops->kind, WG_DEVICE_INTERFACE_TYPE)) {
 		dev_put(dev);
 		return ERR_PTR(-EOPNOTSUPP);
 	}

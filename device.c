@@ -271,7 +271,7 @@ static void wg_destruct(struct net_device *dev)
 	free_netdev(dev);
 }
 
-static const struct device_type device_type = { .name = KBUILD_MODNAME };
+static const struct device_type device_type = { .name = WG_DEVICE_INTERFACE_TYPE};
 
 static void wg_setup(struct net_device *dev)
 {
@@ -407,7 +407,7 @@ err_free_peer_hashtable:
 }
 
 static struct rtnl_link_ops link_ops __read_mostly = {
-	.kind			= KBUILD_MODNAME,
+	.kind			= WG_DEVICE_INTERFACE_TYPE,
 	.priv_size		= sizeof(struct wg_device),
 	.setup			= wg_setup,
 	.newlink		= wg_newlink,

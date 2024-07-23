@@ -18,6 +18,8 @@
 #include <linux/net.h>
 #include <linux/ptr_ring.h>
 
+#define WG_DEVICE_INTERFACE_TYPE "wireguard"
+
 struct wg_device;
 
 struct multicore_worker {
