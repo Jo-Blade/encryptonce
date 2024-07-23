@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+WIREGUARD_TYPE="wireguard"  # name of the ip link type for our custom wireguard
+
 # create a temporary folder for the process
 mkdir -p /tmp/.tmp
 
@@ -80,7 +82,7 @@ nsenter --net=/tmp/.tmp/ns/netrouter iptables -A FORWARD -s 10.10.1.0/24 -d 10.1
 ##### LANCER WIREGUARD SUR LE CLIENT ET LE VPN #####
 
 # get write access in /var/run for the mount namespaces of vpn and client
-# needed by wireguard-go to create /var/run/wireguard folder
+# needed by wireguard to create /var/run/wireguard folder
 nsenter --mount=/tmp/.tmp/ns/mntclient mkdir -p /tmp/.tmp/var/run
 nsenter --mount=/tmp/.tmp/ns/mntclient mount -t tmpfs none /tmp/.tmp/var/run
 nsenter --mount=/tmp/.tmp/ns/mntclient bash -c "for d in /var/run/*/; do mkdir -p /tmp/.tmp\$d; mount --rbind \$d /tmp/.tmp\$d; done"
@@ -95,21 +97,21 @@ nsenter --mount=/tmp/.tmp/ns/mntvpn mount --rbind /tmp/.tmp/var/run/ /var/run
 wg genkey > /tmp/.tmp/privatevpn
 wg genkey > /tmp/.tmp/privateclient
 
-# setup wireguard-go server
-nsenter --mount=/tmp/.tmp/ns/mntvpn --net=/tmp/.tmp/ns/netvpn wireguard-go wg0
+# setup wireguard server
+nsenter --mount=/tmp/.tmp/ns/mntvpn --net=/tmp/.tmp/ns/netvpn ip link add wg0 type $WIREGUARD_TYPE
 nsenter --mount=/tmp/.tmp/ns/mntvpn --net=/tmp/.tmp/ns/netvpn wg set wg0 private-key /tmp/.tmp/privatevpn listen-port 38000 # ne pas oublier de setup la private-key, on utilise ensuite la public-key pour setup le peer
 nsenter --mount=/tmp/.tmp/ns/mntvpn --net=/tmp/.tmp/ns/netvpn ip a a 192.168.1.1/24 dev wg0
-nsenter --mount=/tmp/.tmp/ns/mntvpn --net=/tmp/.tmp/ns/netvpn wg set wg0 peer $(wg pubkey < /tmp/.tmp/privateclient) allowed-ips 0.0.0.0/0 endpoint 192.168.0.2:38001 # le endpoint c'est l'ip publique de la machine cliente pour la contacter et le port sur lequel tourne wireguard-go
+nsenter --mount=/tmp/.tmp/ns/mntvpn --net=/tmp/.tmp/ns/netvpn wg set wg0 peer $(wg pubkey < /tmp/.tmp/privateclient) allowed-ips 0.0.0.0/0 endpoint 192.168.0.2:38001 # le endpoint c'est l'ip publique de la machine cliente pour la contacter et le port sur lequel tourne wireguard
 nsenter --mount=/tmp/.tmp/ns/mntvpn --net=/tmp/.tmp/ns/netvpn ip link set dev wg0 up
 
 # ne pas oublier de config le SNAT pour accéder à l'extérieur en tant que le vpn
 nsenter --net=/tmp/.tmp/ns/netvpn iptables -t nat -A POSTROUTING -o eth0 -j SNAT --to 10.10.2.2  # masquerade marche pas car choisit pas la bonne ip sortante
 
-# setup wireguard-go client
-nsenter --mount=/tmp/.tmp/ns/mntclient --net=/tmp/.tmp/ns/netclient wireguard-go wg0
+# setup wireguard client
+nsenter --mount=/tmp/.tmp/ns/mntclient --net=/tmp/.tmp/ns/netclient ip link add wg0 type $WIREGUARD_TYPE
 nsenter --mount=/tmp/.tmp/ns/mntclient --net=/tmp/.tmp/ns/netclient wg set wg0 private-key /tmp/.tmp/privateclient listen-port 38001 # ne pas oublier de setup la private-key, on utilise ensuite la public-key pour setup le peer
 nsenter --mount=/tmp/.tmp/ns/mntclient --net=/tmp/.tmp/ns/netclient ip a a 192.168.1.2/24 dev wg0
-nsenter --mount=/tmp/.tmp/ns/mntclient --net=/tmp/.tmp/ns/netclient wg set wg0 peer $(wg pubkey < /tmp/.tmp/privatevpn) allowed-ips 0.0.0.0/0 endpoint 10.10.2.2:38000 # le endpoint c'est l'ip publique de la machine cliente pour la contacter et le port sur lequel tourne wireguard-go
+nsenter --mount=/tmp/.tmp/ns/mntclient --net=/tmp/.tmp/ns/netclient wg set wg0 peer $(wg pubkey < /tmp/.tmp/privatevpn) allowed-ips 0.0.0.0/0 endpoint 10.10.2.2:38000 # le endpoint c'est l'ip publique de la machine cliente pour la contacter et le port sur lequel tourne wireguard
 nsenter --mount=/tmp/.tmp/ns/mntclient --net=/tmp/.tmp/ns/netclient ip link set dev wg0 up
 
 # on ajoute la route pour faire passer le traffic par le vpn et bypass le blocage
