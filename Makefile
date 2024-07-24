@@ -1,20 +1,20 @@
 ccflags-y := -D'pr_fmt(fmt)=KBUILD_MODNAME ": " fmt'
 ccflags-$(CONFIG_WIREGUARD_DEBUG) += -DDEBUG
-mywireguard-y := main.o
-mywireguard-y += noise.o
-mywireguard-y += device.o
-mywireguard-y += peer.o
-mywireguard-y += timers.o
-mywireguard-y += queueing.o
-mywireguard-y += send.o
-mywireguard-y += receive.o
-mywireguard-y += socket.o
-mywireguard-y += peerlookup.o
-mywireguard-y += allowedips.o
-mywireguard-y += ratelimiter.o
-mywireguard-y += cookie.o
-mywireguard-y += netlink.o
-obj-$(CONFIG_WIREGUARD) := mywireguard.o
+mywireguard_noencrypt-y := main.o
+mywireguard_noencrypt-y += noise.o
+mywireguard_noencrypt-y += device.o
+mywireguard_noencrypt-y += peer.o
+mywireguard_noencrypt-y += timers.o
+mywireguard_noencrypt-y += queueing.o
+mywireguard_noencrypt-y += send.o
+mywireguard_noencrypt-y += receive.o
+mywireguard_noencrypt-y += socket.o
+mywireguard_noencrypt-y += peerlookup.o
+mywireguard_noencrypt-y += allowedips.o
+mywireguard_noencrypt-y += ratelimiter.o
+mywireguard_noencrypt-y += cookie.o
+mywireguard_noencrypt-y += netlink.o
+obj-$(CONFIG_WIREGUARD) := mywireguard_noencrypt.o
 
 # obj-m += main.o
 
