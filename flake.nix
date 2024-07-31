@@ -37,6 +37,9 @@
             pname = "wireguard-go";
             inherit version;
 
+            buildType = "debug";
+            dontStrip = true;
+
             src = ./.;
 
             postPatch = ''
