@@ -51,8 +51,6 @@
 
             subPackages = [ "." ];
 
-            ldflags = [ "-s" "-w" ];
-
             postInstall = ''
               mv $out/bin/wireguard $out/bin/wireguard-go
             '';
