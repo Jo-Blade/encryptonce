@@ -6,7 +6,7 @@
 package device
 
 import (
-	"runtime"
+  // MODIFIED : "runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -308,7 +308,7 @@ func NewDevice(tunDevice tun.Device, bind conn.Bind, logger *Logger) *Device {
 
 	// start workers
 
-	cpus := runtime.NumCPU()
+  cpus := 1 // MODIFIED : runtime.NumCPU()
 	device.state.stopping.Wait()
 	device.queue.encryption.wg.Add(cpus) // One for each RoutineHandshake
 	for i := 0; i < cpus; i++ {
